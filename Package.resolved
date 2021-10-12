@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "PromiseKit",
+        "repositoryURL": "https://github.com/mxcl/PromiseKit.git",
+        "state": {
+          "branch": null,
+          "revision": "2ff97931d2721ecae9f94d8cbf4cf853a7d79180",
+          "version": "6.16.0"
+        }
+      },
+      {
+        "package": "SwiftyModbus",
+        "repositoryURL": "https://github.com/DimaRU/SwiftyModbus.git",
+        "state": {
+          "branch": null,
+          "revision": "f7c712375bed4a17add2fd937e9fff8e0efceb4a",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
