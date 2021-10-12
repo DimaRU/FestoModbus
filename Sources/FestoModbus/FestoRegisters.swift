@@ -26,7 +26,6 @@ extension CCON: CustomStringConvertible {
     }
     var description: String {
         "  OPM2 | direc |  Lock | Reset | Brake | Op En | Enable\n" +
-//      "   %   |   %   |   %   |   %   |   %   |   %   |   %   ",
         String(format:
         "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
         m(.opm2), m(.direct), m(.lock), m(.reset), m(.brake), m(.opEn), m(.enable))
@@ -45,7 +44,8 @@ struct CPOS: OptionSet {
     static let start = CPOS(rawValue: 0x2)
     // With a rising edge homing is started with the set parameters.
     static let hom = CPOS(rawValue: 0x4)
-    // The drive moves at the specified velocity or rotational speed in the direction of larger actual values, providing the bit is set. The movement begins with the rising edge and ends with the falling edge.
+    // The drive moves at the specified velocity or rotational speed in the direction of larger actual values, providing the bit is set.
+    // The movement begins with the rising edge and ends with the falling edge.
     static let jogp = CPOS(rawValue: 0x8)
     // The drive moves at the specified velocity or rotational speed in the direction of smaller actual values
     static let jogm = CPOS(rawValue: 0x10)
@@ -53,6 +53,17 @@ struct CPOS: OptionSet {
     static let teach = CPOS(rawValue: 0x20)
     // In the "Halt" status a rising edge causes the positioning task to be deleted and transfer to the status "Ready"
     static let clear = CPOS(rawValue: 0x40)
+}
+extension CPOS: CustomStringConvertible {
+    @inline(__always) func m(_ value: CPOS) -> String {
+        self.contains(value) ? "x" : " "
+    }
+    var description: String {
+        " clear | teach |  JogN |  JogP | StHom | StPos | nHalt\n" +
+        String(format:
+        "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
+        m(.clear), m(.teach), m(.jogm), m(.jogp), m(.hom), m(.start), m(.halt))
+    }
 }
 
 // Control byte 3 (CDIR) Direct mode
