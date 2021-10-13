@@ -1,6 +1,6 @@
 import Foundation
 
-// Control byte 1 (CCON)
+/// Control byte 1 (CCON)
 struct CCON: OptionSet {
     let rawValue: UInt8
     // ENABLE = 1: Enable drive (controller) =0: Drive(controller)disabled
@@ -32,7 +32,7 @@ extension CCON: CustomStringConvertible {
     }
 }
 
-// Control byte 2 (CPOS)
+/// Control byte 2 (CPOS)
 struct CPOS: OptionSet {
     let rawValue: UInt8
 
@@ -66,7 +66,7 @@ extension CPOS: CustomStringConvertible {
     }
 }
 
-// Control byte 3 (CDIR) Direct mode
+/// Control byte 3 (CDIR) Direct mode
 struct CDIR: OptionSet {
     let rawValue: UInt8
 
@@ -79,12 +79,11 @@ struct CDIR: OptionSet {
     // 1 0 Profile Velocity mode (speed) Reserved
     static let controlMode = CDIR(rawValue: 0x6)
     // Profile Position mode
-    static let comPosition = CDIR([])
+    static let cmPosition = CDIR([])
     // Profile Torque mode (torque, current)
-    static let comTorque = CDIR(rawValue: 0x2)
+    static let cmTorque = CDIR(rawValue: 0x2)
     // Profile Velocity mode (speed)
-    static let comVelocity = CDIR(rawValue: 0x4)
-
+    static let cmVelocity = CDIR(rawValue: 0x4)
     // Without camming function (CDIR.B7, FUNC = 0): no function, = 0!
     // If the camming function is used (only with CMMP, CDIR.B7, FUNC = 1):
     static let fnum = CDIR(rawValue: 0x18)
@@ -94,11 +93,28 @@ struct CDIR: OptionSet {
     static let syncExtInpCamm = CDIR(rawValue: 0x10)
     // Synchronisation with a virtual master with camming function
     static let syncVMasterCamm = CDIR(rawValue: 0x18)
+    // Function group
+    static let fgrp = CDIR(rawValue: 0x60)
     // Execute camming function(only permissible with CMMP, bit 3 ... 6 = function number and group)
     static let cammingFunc = CDIR(rawValue: 0x80)
 }
+extension CDIR: CustomStringConvertible {
+    @inline(__always) func m(_ value: CDIR) -> String {
+        self.contains(value) ? "x" : " "
+    }
+    //        "   %   |   %   |   %   |   %   |   %   |   %   |   %   |   %   ",
+    var description: String {
+        "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
+        String(format:
+        "   %s   |   %d   |   %d   |   %s   |   %s   |   %s   ",
+        m(.cammingFunc),
+        (self.rawValue & CDIR.fgrp.rawValue) >> 5,
+        (self.rawValue & CDIR.fnum.rawValue) >> 3,
+        m(.cmVelocity), m(.cmTorque), m(.abs))
+    }
+}
 
-// Status byte 1 (SCON)
+/// Status byte 1 (SCON)
 struct SCON: OptionSet {
     let rawValue: UInt8
 
@@ -136,7 +152,7 @@ extension SCON: CustomStringConvertible {
     }
 }
 
-// Status byte 2 (SPOS)
+/// Status byte 2 (SPOS)
 struct SPOS: OptionSet {
     let rawValue: UInt8
 
@@ -176,5 +192,53 @@ extension SPOS: CustomStringConvertible {
         String(format:
         "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
         m(.ref), m(.still), m(.dvError), m(.moving), m(.teach), m(.motionComplete), m(.ask), m(.halt))
+    }
+}
+
+/// Status byte 3 (SDIR) - Direct mode
+struct SDIR: OptionSet {
+    let rawValue: UInt8
+
+    // = 0: Setpoint value is absolute
+    // = 1: Setpoint value is relative to last setpoint value
+    static let abs = SDIR(rawValue: 0x1)
+    // 2 1 bit - Control mode
+    // 0 0 Profile Position mode
+    // 0 1 Profile Torque mode (torque, current)
+    // 1 0 Profile Velocity mode (speed) Reserved
+    static let controlMode = SDIR(rawValue: 0x6)
+    // Profile Position mode
+    static let cmPosition = SDIR([])
+    // Profile Torque mode (torque, current)
+    static let cmTorque = SDIR(rawValue: 0x2)
+    // Profile Velocity mode (speed)
+    static let cmVelocity = SDIR(rawValue: 0x4)
+    // Only if the camming function is used (SDIR.B7, FUNC = 1):
+    static let fnum = SDIR(rawValue: 0x18)
+    // Synchronisation with an external input
+    static let syncExtInp = SDIR(rawValue: 0x8)
+    // Synchronisation with an external input with camming function
+    static let syncExtInpCamm = SDIR(rawValue: 0x10)
+    // Synchronisation with a virtual master with camming function
+    static let syncVMasterCamm = SDIR(rawValue: 0x18)
+    // Function group
+    static let fgrp = SDIR(rawValue: 0x60)
+    // Execute camming function(only permissible with CMMP, bit 3 ... 6 = function number and group)
+    static let cammingFunc = SDIR(rawValue: 0x80)
+}
+
+extension SDIR: CustomStringConvertible {
+    @inline(__always) func m(_ value: SDIR) -> String {
+        self.contains(value) ? "x" : " "
+    }
+    //        "   %   |   %   |   %   |   %   |   %   |   %   |   %   |   %   ",
+    var description: String {
+        "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
+        String(format:
+        "   %s   |   %d   |   %d   |   %s   |   %s   |   %s   ",
+        m(.cammingFunc),
+        (self.rawValue & SDIR.fgrp.rawValue) >> 5,
+        (self.rawValue & SDIR.fnum.rawValue) >> 3,
+        m(.cmVelocity), m(.cmTorque), m(.abs))
     }
 }
