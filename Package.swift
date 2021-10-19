@@ -10,10 +10,16 @@ let package = Package(
             targets: ["FestoModbus"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/DimaRU/SwiftyModbus.git", from: "1.0.0"),
+        .package(url: "https://git.dev-og.com/d.borovikov/SwiftyModbus.git", from: "2.0.0"),
+        .package(url: "https://github.com/ianpartridge/swift-log-syslog", from: "1.0.0"),
+        .package(url: "https://github.com/mxcl/PromiseKit.git", .upToNextMajor(from: "6.15.2")),
     ],
     targets: [
         .target(
-            name: "FestoModbus", dependencies: ["SwiftyModbus"]),
+            name: "FestoModbus",
+            dependencies: [
+                "SwiftyModbus",
+                .product(name: "LoggingSyslog", package: "swift-log-syslog")
+            ]),
     ]
 )

@@ -11,12 +11,30 @@
         }
       },
       {
-        "package": "SwiftyModbus",
-        "repositoryURL": "https://github.com/DimaRU/SwiftyModbus.git",
+        "package": "swift-log",
+        "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "f7c712375bed4a17add2fd937e9fff8e0efceb4a",
-          "version": "1.0.0"
+          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+          "version": "1.4.2"
+        }
+      },
+      {
+        "package": "swift-log-syslog",
+        "repositoryURL": "https://github.com/ianpartridge/swift-log-syslog",
+        "state": {
+          "branch": null,
+          "revision": "654ea6e32b9802c45468c4c743ed507c36a775c2",
+          "version": "1.0.2"
+        }
+      },
+      {
+        "package": "SwiftyModbus",
+        "repositoryURL": "https://git.dev-og.com/d.borovikov/SwiftyModbus.git",
+        "state": {
+          "branch": null,
+          "revision": "850c178ad2433ffa7d79446a05db89dde8095f00",
+          "version": "2.0.0"
         }
       }
     ]
