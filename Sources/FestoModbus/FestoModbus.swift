@@ -4,6 +4,7 @@
 
 import Foundation
 import SwiftyModbus
+import Logging
 
 extension FixedWidthInteger {
     var bytes: [UInt8] {
@@ -11,12 +12,22 @@ extension FixedWidthInteger {
     }
 }
 
-public struct FestoModbus {
-    public var modbusQueue = DispatchQueue(label: "TraceWay.festoQueue")
+public class FestoModbus {
+    private var modbusQueue = DispatchQueue(label: "TraceWay.festoQueue")
+    private var modbus: SwiftyModbus
+    private let logger = Logger(label: "FestoModbus")
+    private let maxLevels: Int
+    private let levelHeight: Int
 
-    public init() {
+    init(address: String, port: Int32, maxLevels: Int, levelHeight: Int) {
+        self.maxLevels = maxLevels
+        self.levelHeight = levelHeight
+        modbus = SwiftyModbus(address: address, port: port)
     }
 
+    deinit {
+        modbus.disconnect()
+    }
 
     func makeRecordSelRequest(ccon: CCON, cpos: CPOS, recno: UInt8) -> [UInt8] {
         var request: [UInt8] = .init(repeating: 0, count: 8)
@@ -42,9 +53,8 @@ public struct FestoModbus {
     }
 
     func parceRecordSelReply(_ reply: [UInt8]) -> (scon: SCON, spos: SPOS, rsb: UInt8) {
-        guard reply.count == 8 else {
-            fatalError("Reply size != 8 \(reply.count)")
-        }
+        assert(reply.count == 8, "Reply size != 8 \(reply.count)")
+
         let scon = SCON(rawValue: reply[0])
         let spos = SPOS(rawValue: reply[1])
         let rsb = reply[2]
@@ -52,9 +62,8 @@ public struct FestoModbus {
     }
 
     func parceDirectModeReply(_ reply: [UInt8]) -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32) {
-        guard reply.count == 8 else {
-            fatalError("Reply size != 8 \(reply.count)")
-        }
+        assert(reply.count == 8, "Reply size != 8 \(reply.count)")
+
         let scon = SCON(rawValue: reply[0])
         let spos = SPOS(rawValue: reply[1])
         let sdir = SDIR(rawValue: reply[2])
@@ -66,4 +75,5 @@ public struct FestoModbus {
         return (scon, spos, sdir, v1, v2)
     }
 
+    
 }

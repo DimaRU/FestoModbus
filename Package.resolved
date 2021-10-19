@@ -20,15 +20,6 @@
         }
       },
       {
-        "package": "swift-log-syslog",
-        "repositoryURL": "https://github.com/ianpartridge/swift-log-syslog",
-        "state": {
-          "branch": null,
-          "revision": "654ea6e32b9802c45468c4c743ed507c36a775c2",
-          "version": "1.0.2"
-        }
-      },
-      {
         "package": "SwiftyModbus",
         "repositoryURL": "https://git.dev-og.com/d.borovikov/SwiftyModbus.git",
         "state": {
