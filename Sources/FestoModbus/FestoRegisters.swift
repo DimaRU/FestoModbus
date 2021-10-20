@@ -4,10 +4,10 @@ import Foundation
 struct CCON: OptionSet {
     let rawValue: UInt8
     // ENABLE = 1: Enable drive (controller) =0: Drive(controller)disabled
-    static let enable = CCON(rawValue: 0x1)
+    static let drvEn = CCON(rawValue: 0x1)
     // = 1: Operation enabled.  Any error will be deleted.
     // = 0: STOP active (cancel emergency ramp + positioning task). The drive stops with maximum braking ramp, the positioning task is reset.
-    static let opEn = CCON(rawValue: 0x2)
+    static let opsEn = CCON(rawValue: 0x2)
     // = 1: Release brake
     // = 0: Activate brake
     static let brake = CCON(rawValue: 0x4)
@@ -28,7 +28,7 @@ extension CCON: CustomStringConvertible {
         "  OPM2 | direc |  Lock | Reset | Brake | Op En | Enable\n" +
         String(format:
         "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
-        m(.opm2), m(.direct), m(.lock), m(.reset), m(.brake), m(.opEn), m(.enable))
+        m(.opm2), m(.direct), m(.lock), m(.reset), m(.brake), m(.opsEn), m(.drvEn))
     }
 }
 
