@@ -27,17 +27,21 @@ public class FestoModbus {
     private let retryCount = 10
     private var cancel = false
 
-    init(address: String, port: Int32, maxLevels: Int, levelHeight: Int) {
+    public init(address: String, port: Int32, maxLevels: Int, levelHeight: Int) {
         self.maxLevels = maxLevels
         self.levelHeight = levelHeight
         modbus = SwiftyModbus(address: address, port: port)
+    }
+
+    public func connect() throws {
+        try modbus.connect()
     }
 
     deinit {
         modbus.disconnect()
     }
 
-    func forceCancel() {
+    public func forceCancel() {
         cancel = true
     }
 
@@ -100,7 +104,7 @@ public class FestoModbus {
         return (scon, spos, rsb)
     }
 
-    func unlockFestoDrive() throws {
+    public func unlockFestoDrive() throws {
         // emptry cmd
         let _ = try sendRecSelCmd(ccon: [], cpos: [])
         for _ in 1...retryCount {

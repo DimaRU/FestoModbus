@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "Puppy",
+        "repositoryURL": "https://github.com/sushichop/Puppy.git",
+        "state": {
+          "branch": null,
+          "revision": "95ce04b0e778b8d7c351876bc98bbf68328dfc9b",
+          "version": "0.3.1"
+        }
+      },
+      {
         "package": "swift-log",
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
