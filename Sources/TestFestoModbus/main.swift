@@ -10,11 +10,11 @@ import Puppy
 import Logging
 
 let logLabel = "TestFestoModbus"
-let console = ConsoleLogger("com.example.yourapp.console")
+let console = ConsoleLogger(logLabel)
 #if os(macOS)
-let syslog = OSLogger("com.example.yourapp.syslog")
+let syslog = OSLogger(logLabel)
 #elseif os(Linux)
-let syslog = SystemLogger("com.example.yourapp.syslog")
+let syslog = SystemLogger(logLabel)
 #endif
 
 let puppy = Puppy.default
@@ -28,4 +28,9 @@ LoggingSystem.bootstrap {
     return handler
 }
 
-let log = Logger(label: "")
+let log = Logger(label: logLabel)
+
+print("Start")
+let festo = TestFestoModbus()
+festo.run()
+RunLoop.main.run()

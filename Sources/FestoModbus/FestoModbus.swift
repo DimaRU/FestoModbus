@@ -47,6 +47,7 @@ public class FestoModbus {
 
     func makeRecordSelRequest(ccon: CCON, cpos: CPOS, recno: UInt8) -> [UInt16] {
         var request: [UInt16] = .init(repeating: 0, count: 4)
+        logger.trace("Send\n\(ccon)\n\(cpos)\nrecno=\(recno)")
         request.withUnsafeMutableBytes { ptr in
             ptr[0] = ccon.rawValue
             ptr[1] = cpos.rawValue
@@ -77,6 +78,7 @@ public class FestoModbus {
             let scon = SCON(rawValue: ptr[0])
             let spos = SPOS(rawValue: ptr[1])
             let rsb = ptr[2]
+            logger.trace("Receive\n\(scon)\n\(spos)\nrsb=\(rsb)")
             return (scon, spos, rsb)
         }
     }
