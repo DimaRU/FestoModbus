@@ -84,32 +84,19 @@ struct CDIR: OptionSet {
     static let cmTorque = CDIR(rawValue: 0x2)
     // Profile Velocity mode (speed)
     static let cmVelocity = CDIR(rawValue: 0x4)
-    // Without camming function (CDIR.B7, FUNC = 0): no function, = 0!
-    // If the camming function is used (only with CMMP, CDIR.B7, FUNC = 1):
-    static let fnum = CDIR(rawValue: 0x18)
-    // Synchronisation with an external input
-    static let syncExtInp = CDIR(rawValue: 0x8)
-    // Synchronisation with an external input with camming function
-    static let syncExtInpCamm = CDIR(rawValue: 0x10)
-    // Synchronisation with a virtual master with camming function
-    static let syncVMasterCamm = CDIR(rawValue: 0x18)
-    // Function group
-    static let fgrp = CDIR(rawValue: 0x60)
-    // Execute camming function(only permissible with CMMP, bit 3 ... 6 = function number and group)
-    static let cammingFunc = CDIR(rawValue: 0x80)
+    // 1: Stroke monitoring not active
+    // 0: Stroke monitoring active
+    static let xlim = CDIR(rawValue: 0x20)
 }
 extension CDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: CDIR) -> String {
         self.contains(value) ? "x" : " "
     }
     var description: String { "CDIR: \n" +
-        "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
+        "  Camm |  Velo |  Torq |  Abs  \n" +
         String(format:
-        "   %@   |   %d   |   %d   |   %@   |   %@   |   %@   ",
-        m(.cammingFunc),
-        (self.rawValue & CDIR.fgrp.rawValue) >> 5,
-        (self.rawValue & CDIR.fnum.rawValue) >> 3,
-        m(.cmVelocity), m(.cmTorque), m(.abs))
+        "   %@   |   %@   |   %@   |   %@   ",
+        m(.xlim), m(.cmVelocity), m(.cmTorque), m(.abs))
     }
 }
 
@@ -144,7 +131,7 @@ extension SCON: CustomStringConvertible {
         self.contains(value) ? "x" : " "
     }
     var description: String { "SCON: \n" +
-        "  OPM2 |  OPM1 |  FTC  | VLoad | Fault |  Warn | Op En | Enable\n" +
+        "  OPM2 |  OPM1 |  FCT  | VLoad | Fault |  Warn | Op En | Enable\n" +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.opm2), m(.opm1), m(.lock), m(.vl24), m(.fault), m(.warn), m(.opsEn), m(.drvEn))
@@ -158,19 +145,14 @@ struct SPOS: OptionSet {
     // = 0: HALT is active
     // = 1: HALT is not active, axis can be moved
     static let halt = SPOS(rawValue: 0x1)
-
     // = 0: Ready for start (homing, jog)
     // = 1: Start carried out (homing, jog)
     static let ask = SPOS(rawValue: 0x2)
-    // = 0: Positioningtaskactive
+    // = 0: Positioning task active
     // = 1: Positioning task completed, where applicable with error
     static let mc = SPOS(rawValue: 0x4)
-    // PNU354=0: Display of the teach status
-    // SPOS.B3 = 0: Ready for teaching
-    // SPOS.B3 = 1: Teaching carried out, actual value is transferred
-    // PNU354=1: Display of the samplings tatus
-    // SPOS.B3 = 0: No edge.
-    // SPOS.B3 = 1: An edge has appeared. New position value available.
+    // = 1: Teaching carried out, actual value has been trans­ferred
+    // = 0: Ready for teaching
     static let teach = SPOS(rawValue: 0x8)
     // 1: Speed of the axis >= limit value
     static let moving = SPOS(rawValue: 0x10)
@@ -212,18 +194,14 @@ struct SDIR: OptionSet {
     static let cmTorque = SDIR(rawValue: 0x2)
     // Profile Velocity mode (speed)
     static let cmVelocity = SDIR(rawValue: 0x4)
-    // Only if the camming function is used (SDIR.B7, FUNC = 1):
-    static let fnum = SDIR(rawValue: 0x18)
-    // Synchronisation with an external input
-    static let syncExtInp = SDIR(rawValue: 0x8)
-    // Synchronisation with an external input with camming function
-    static let syncExtInpCamm = SDIR(rawValue: 0x10)
-    // Synchronisation with a virtual master with camming function
-    static let syncVMasterCamm = SDIR(rawValue: 0x18)
-    // Function group
-    static let fgrp = SDIR(rawValue: 0x60)
-    // Execute camming function(only permissible with CMMP, bit 3 ... 6 = function number and group)
-    static let cammingFunc = SDIR(rawValue: 0x80)
+    // Speed limit reached
+    // = 1: Speed limit reached
+    // = 0: Speed limit not reached
+    static let vlim = SDIR(rawValue: 0x10)
+    // Stroke limit reached
+    // = 1: Stroke limit reached
+    // = 0: Stroke limit not reached
+    static let xlim = SDIR(rawValue: 0x20)
 }
 
 extension SDIR: CustomStringConvertible {
@@ -231,12 +209,9 @@ extension SDIR: CustomStringConvertible {
         self.contains(value) ? "x" : " "
     }
     var description: String { "SDIR: \n" +
-        "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
+        "  XLim |  VLim |  Velo |  Torq |  Abs  \n" +
         String(format:
-        "   %@   |   %d   |   %d   |   %@   |   %@   |   %@   ",
-        m(.cammingFunc),
-        (self.rawValue & SDIR.fgrp.rawValue) >> 5,
-        (self.rawValue & SDIR.fnum.rawValue) >> 3,
-        m(.cmVelocity), m(.cmTorque), m(.abs))
+        "   %@   |   %@   |   %@   |   %@   |   %@   ",
+        m(.xlim), m(.vlim), m(.cmVelocity), m(.cmTorque), m(.abs))
     }
 }
