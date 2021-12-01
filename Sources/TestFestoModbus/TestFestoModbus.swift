@@ -18,12 +18,13 @@ import FestoModbus
  */
 
 class TestFestoModbus {
-    let festo = FestoModbus.init(address: "192.168.75.70", port: 502, maxLevels: 21, levelHeight: 13)
+    let festo = FestoModbus.init(address: "192.1.1.32", port: 502, maxLevels: 21, levelHeight: 13)
 
     init() {
         do {
             try festo.connect()
         } catch  {
+            print("Connection error \(error)")
             fatalError("Connection error \(error)")
         }
     }

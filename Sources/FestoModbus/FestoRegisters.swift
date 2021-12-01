@@ -27,7 +27,7 @@ extension CCON: CustomStringConvertible {
     var description: String {
         "  OPM2 | direc |  Lock | Reset | Brake | Op En | Enable\n" +
         String(format:
-        "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
+        "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.opm2), m(.direct), m(.lock), m(.reset), m(.brake), m(.opsEn), m(.drvEn))
     }
 }
@@ -61,7 +61,7 @@ extension CPOS: CustomStringConvertible {
     var description: String {
         " clear | teach |  JogN |  JogP | StHom | StPos | nHalt\n" +
         String(format:
-        "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
+        "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.clear), m(.teach), m(.jogm), m(.jogp), m(.hom), m(.start), m(.halt))
     }
 }
@@ -102,11 +102,10 @@ extension CDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: CDIR) -> String {
         self.contains(value) ? "x" : " "
     }
-    //        "   %   |   %   |   %   |   %   |   %   |   %   |   %   |   %   ",
     var description: String {
         "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
         String(format:
-        "   %s   |   %d   |   %d   |   %s   |   %s   |   %s   ",
+        "   %@   |   %d   |   %d   |   %@   |   %@   |   %@   ",
         m(.cammingFunc),
         (self.rawValue & CDIR.fgrp.rawValue) >> 5,
         (self.rawValue & CDIR.fnum.rawValue) >> 3,
@@ -147,7 +146,7 @@ extension SCON: CustomStringConvertible {
     var description: String {
         "  OPM2 |  OPM1 |  FTC  | VLoad | Fault |  Warn | Op En | Enable\n" +
         String(format:
-        "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
+        "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.opm2), m(.opm1), m(.lock), m(.vl24), m(.fault), m(.warn), m(.opsEn), m(.drvEn))
     }
 }
@@ -190,7 +189,7 @@ extension SPOS: CustomStringConvertible {
     var description: String {
         "  Ref  | Still | DvErr |  Mov  | Teach | MovCo | AskS  | nHalt \n" +
         String(format:
-        "   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   |   %s   ",
+        "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.ref), m(.still), m(.dvError), m(.moving), m(.teach), m(.motionComplete), m(.ask), m(.halt))
     }
 }
@@ -231,11 +230,10 @@ extension SDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: SDIR) -> String {
         self.contains(value) ? "x" : " "
     }
-    //        "   %   |   %   |   %   |   %   |   %   |   %   |   %   |   %   ",
     var description: String {
         "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
         String(format:
-        "   %s   |   %d   |   %d   |   %s   |   %s   |   %s   ",
+        "   %@   |   %d   |   %d   |   %@   |   %@   |   %@   ",
         m(.cammingFunc),
         (self.rawValue & SDIR.fgrp.rawValue) >> 5,
         (self.rawValue & SDIR.fnum.rawValue) >> 3,

@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug",
+            "stopOnEntry": false,
+            "program": "${workspaceFolder}/.build/debug/TestFestoModbus",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                 "QT_AUTO_SCREEN_SCALE_FACTOR": "1",
+                 "DISPLAY": ":0"
+            }
+        }
+    ]
+}
