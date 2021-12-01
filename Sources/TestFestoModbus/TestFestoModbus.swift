@@ -8,15 +8,6 @@
 import Foundation
 import FestoModbus
 
-/*
- "FestoCameraDrive-": {
- "Address": "192.168.75.70",
- "Port": 502,
- "MaxLevels": 21,
- "LevelHeight": 13
- },
- */
-
 class TestFestoModbus {
     let festo = FestoModbus.init(address: "192.1.1.32", port: 502, maxLevels: 21, levelHeight: 13)
 
@@ -31,9 +22,10 @@ class TestFestoModbus {
 
     func run() {
         do {
-            try festo.unlockFestoDrive()
+            // try festo.unlockFestoDrive()
+            try festo.clearError()
         } catch  {
-            fatalError("Run error \(error)")
+            print("Clear error \(error)")
         }
     }
 }

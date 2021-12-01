@@ -106,11 +106,13 @@ public class FestoModbus {
         return (scon, spos, rsb)
     }
 
+    // T1
     public func unlockFestoDrive() throws {
         // emptry cmd
         let _ = try sendRecSelCmd(ccon: [], cpos: [])
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
+            // T2
             let (scon, _, _) = try sendRecSelCmd(ccon: [.drvEn, .opsEn], cpos: [])
             if scon.contains(.drvEn) {
                 return
@@ -118,4 +120,18 @@ public class FestoModbus {
         }
         throw FestoError.unlock
     }
+
+    public func clearError() throws {
+        // emptry cmd
+        let _ = try sendRecSelCmd(ccon: [.drvEn, .opsEn], cpos: [])
+        for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            let (scon, spos, _) = try sendRecSelCmd(ccon: [.drvEn, .opsEn, .reset], cpos: [])
+            if !scon.contains(.fault) && !scon.contains(.warn) && !spos.contains(.ask){
+                return
+            }
+        }
+        throw FestoError.unlock
+    }
+
 }

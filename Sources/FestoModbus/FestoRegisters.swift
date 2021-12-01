@@ -24,7 +24,7 @@ extension CCON: CustomStringConvertible {
     @inline(__always) func m(_ value: CCON) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {
+    var description: String {  "CCON: \n" +
         "  OPM2 | direc |  Lock | Reset | Brake | Op En | Enable\n" +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
@@ -58,7 +58,7 @@ extension CPOS: CustomStringConvertible {
     @inline(__always) func m(_ value: CPOS) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {
+    var description: String { "CPOS: \n" +
         " clear | teach |  JogN |  JogP | StHom | StPos | nHalt\n" +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
@@ -102,7 +102,7 @@ extension CDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: CDIR) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {
+    var description: String { "CDIR: \n" +
         "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
         String(format:
         "   %@   |   %d   |   %d   |   %@   |   %@   |   %@   ",
@@ -143,7 +143,7 @@ extension SCON: CustomStringConvertible {
     @inline(__always) func m(_ value: SCON) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {
+    var description: String { "SCON: \n" +
         "  OPM2 |  OPM1 |  FTC  | VLoad | Fault |  Warn | Op En | Enable\n" +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
@@ -164,7 +164,7 @@ struct SPOS: OptionSet {
     static let ask = SPOS(rawValue: 0x2)
     // = 0: Positioningtaskactive
     // = 1: Positioning task completed, where applicable with error
-    static let motionComplete = SPOS(rawValue: 0x4)
+    static let mc = SPOS(rawValue: 0x4)
     // PNU354=0: Display of the teach status
     // SPOS.B3 = 0: Ready for teaching
     // SPOS.B3 = 1: Teaching carried out, actual value is transferred
@@ -174,8 +174,8 @@ struct SPOS: OptionSet {
     static let teach = SPOS(rawValue: 0x8)
     // 1: Speed of the axis >= limit value
     static let moving = SPOS(rawValue: 0x10)
-    // 1: Drag error active
-    static let dvError = SPOS(rawValue: 0x20)
+    // 1: Following error active
+    static let folErr = SPOS(rawValue: 0x20)
     // 1: Axis has left the tolerance window after MC
     static let still = SPOS(rawValue: 0x40)
     // 1: Reference information present, homing not necessary
@@ -186,11 +186,11 @@ extension SPOS: CustomStringConvertible {
     @inline(__always) func m(_ value: SPOS) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {
-        "  Ref  | Still | DvErr |  Mov  | Teach | MovCo | AskS  | nHalt \n" +
+    var description: String { "SPOS: \n" +
+        "  Ref  | Still | FolEr |  Mov  | Teach |  MC   | AskS  | nHalt \n" +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
-        m(.ref), m(.still), m(.dvError), m(.moving), m(.teach), m(.motionComplete), m(.ask), m(.halt))
+        m(.ref), m(.still), m(.folErr), m(.moving), m(.teach), m(.mc), m(.ask), m(.halt))
     }
 }
 
@@ -230,7 +230,7 @@ extension SDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: SDIR) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {
+    var description: String { "SDIR: \n" +
         "  Camm |  FGrp |  FNum |  Velo |  Torq |  Abs  \n" +
         String(format:
         "   %@   |   %d   |   %d   |   %@   |   %@   |   %@   ",
