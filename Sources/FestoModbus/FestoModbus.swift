@@ -153,10 +153,11 @@ public class FestoModbus {
         (scon, _, _) = try readWriteRecSel(ccon: [], cpos: [])
 
         for _ in 1...retryCount {
-            if !scon.contains(.drvEn) {
+            if !scon.contains([.drvEn]) {
                 return
             }
             guard !cancel else { throw FestoError.cancelled }
+            usleep(50000)
             (scon, _, _) = try readRecSel()
         }
         throw FestoError.unlock
@@ -164,15 +165,14 @@ public class FestoModbus {
 
     public func unlockFestoDrive() throws {
         var scon: SCON
-        // emptry cmd
-        let _ = try writeRecSel(ccon: [], cpos: [])
         (scon, _, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn], cpos: [])
 
         for _ in 1...retryCount {
-            if scon.contains(.drvEn) {
+            if scon.contains([.drvEn, .opsEn]) {
                 return
             }
             guard !cancel else { throw FestoError.cancelled }
+            usleep(50000)
             (scon, _, _) = try readRecSel()
         }
         throw FestoError.unlock
