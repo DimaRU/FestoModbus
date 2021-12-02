@@ -32,6 +32,8 @@ public class FestoModbus {
         self.maxLevels = maxLevels
         self.levelHeight = levelHeight
         modbus = SwiftyModbus(address: address, port: port)
+        modbus.responseTimeout = 1
+        modbus.byteTimeout = 0.5
     }
 
     public func connect() throws {
@@ -198,7 +200,7 @@ public class FestoModbus {
     public func home() throws {
         var scon: SCON
         var spos: SPOS
-        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.hom, .halt], cdir: [], v1: 0, v2: 0)
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.hom, .start], cdir: [.abs], v1: 0, v2: 0)
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
