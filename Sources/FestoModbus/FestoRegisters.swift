@@ -24,8 +24,10 @@ extension CCON: CustomStringConvertible {
     @inline(__always) func m(_ value: CCON) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String {  "CCON: \n" +
+    var description: String {
+        "CCON: " +
         "  OPM2 | direc |  Lock | Reset | Brake | Op En | Enable\n" +
+        "      " +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.opm2), m(.direct), m(.lock), m(.reset), m(.brake), m(.opsEn), m(.drvEn))
@@ -58,8 +60,10 @@ extension CPOS: CustomStringConvertible {
     @inline(__always) func m(_ value: CPOS) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String { "CPOS: \n" +
+    var description: String {
+        "CPOS: " +
         " clear | teach |  JogN |  JogP | StHom | StPos | nHalt\n" +
+        "      " +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.clear), m(.teach), m(.jogm), m(.jogp), m(.hom), m(.start), m(.halt))
@@ -92,8 +96,10 @@ extension CDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: CDIR) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String { "CDIR: \n" +
+    var description: String {
+        "CDIR: " +
         "  Camm |  Velo |  Torq |  Abs  \n" +
+        "      " +
         String(format:
         "   %@   |   %@   |   %@   |   %@   ",
         m(.xlim), m(.cmVelocity), m(.cmTorque), m(.abs))
@@ -130,8 +136,10 @@ extension SCON: CustomStringConvertible {
     @inline(__always) func m(_ value: SCON) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String { "SCON: \n" +
+    var description: String {
+        "SCON: " +
         "  OPM2 |  OPM1 |  FCT  | VLoad | Fault |  Warn | Op En | Enable\n" +
+        "      " +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.opm2), m(.opm1), m(.lock), m(.vl24), m(.fault), m(.warn), m(.opsEn), m(.drvEn))
@@ -168,8 +176,10 @@ extension SPOS: CustomStringConvertible {
     @inline(__always) func m(_ value: SPOS) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String { "SPOS: \n" +
+    var description: String {
+        "SPOS: " +
         "  Ref  | Still | FolEr |  Mov  | Teach |  MC   | AskS  | nHalt \n" +
+        "      " +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.ref), m(.still), m(.folErr), m(.moving), m(.teach), m(.mc), m(.ask), m(.halt))
@@ -208,8 +218,10 @@ extension SDIR: CustomStringConvertible {
     @inline(__always) func m(_ value: SDIR) -> String {
         self.contains(value) ? "x" : " "
     }
-    var description: String { "SDIR: \n" +
+    var description: String {
+        "SDIR: " +
         "  XLim |  VLim |  Velo |  Torq |  Abs  \n" +
+        "      " +
         String(format:
         "   %@   |   %@   |   %@   |   %@   |   %@   ",
         m(.xlim), m(.vlim), m(.cmVelocity), m(.cmTorque), m(.abs))
