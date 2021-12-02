@@ -73,9 +73,9 @@ public class FestoModbus {
         return request
     }
 
-    func parceRecordSelResponce(_ reply: [UInt16]) -> (scon: SCON, spos: SPOS, rsb: UInt8) {
-        assert(reply.count == 4, "Reply size != 4 \(reply.count)")
-        return reply.withUnsafeBytes { ptr in
+    func parceRecordSelResponce(_ responce: [UInt16]) -> (scon: SCON, spos: SPOS, rsb: UInt8) {
+        assert(responce.count == 4, "Reply size != 4 \(responce.count)")
+        return responce.withUnsafeBytes { ptr in
             let scon = SCON(rawValue: ptr[1])
             let spos = SPOS(rawValue: ptr[0])
             let rsb = ptr[2]
@@ -84,22 +84,20 @@ public class FestoModbus {
         }
     }
 
-    func parceDirectModeResponce(_ reply: [UInt16]) -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32) {
-        assert(reply.count == 4, "Reply size != 4 \(reply.count)")
-        return reply.withUnsafeBytes { ptr in
+    func parceDirectModeResponce(_ responce: [UInt16]) -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32) {
+        assert(responce.count == 4, "Reply size != 4 \(responce.count)")
+        return responce.withUnsafeBytes { ptr in
             let scon = SCON(rawValue: ptr[1])
             let spos = SPOS(rawValue: ptr[0])
             let sdir = SDIR(rawValue: ptr[3])
             let v1 = ptr[2]
-            let v2: UInt32 = UInt32(reply[2]) << 16 + UInt32(reply[3])
-            print(reply)
-            
+            let v2: UInt32 = UInt32(responce[2]) << 16 + UInt32(responce[3])
             logger.trace("Receive\n\(scon)\n\(spos)\n\(sdir)\n v1=\(v1) v2=\(v2)\n")
             return (scon, spos, sdir, v1, v2)
         }
     }
 
-    private func sendRecSelCmd(ccon: CCON, cpos: CPOS, recno: UInt8 = 0) throws -> (scon: SCON, spos: SPOS, rsb: UInt8)
+    func readWriteRecSel(ccon: CCON, cpos: CPOS, recno: UInt8 = 0) throws -> (scon: SCON, spos: SPOS, rsb: UInt8)
     {
         let request = makeRecordSelRequest(ccon: ccon, cpos: cpos, recno: recno)
         let responce = try modbus.writeAndReadRegisters(writeAddr: 0, data: request, readAddr: 0, readCount: 4)
@@ -110,7 +108,7 @@ public class FestoModbus {
         return (scon, spos, rsb)
     }
 
-    private func sendDirectCmd(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: UInt32 = 0) throws ->
+    func readWriteDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: UInt32 = 0) throws ->
                                             (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32)
     {
         let request = makeDirectModeRequest(ccon: ccon, cpos: cpos, cdir: cdir, v1: v1, v2: v2)
@@ -122,41 +120,74 @@ public class FestoModbus {
         return (scon, spos, sdir, v1, v2)
     }
 
-    func readDirectRegs() throws -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32) 
+    func readRecSel() throws -> (scon: SCON, spos: SPOS, rsb: UInt8)
+    {
+        let responce = try modbus.readRegisters(addr: 0, count: 4)
+        return parceRecordSelResponce(responce)
+    }
+
+    func readDirect() throws -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32)
     {
         let responce = try modbus.readRegisters(addr: 0, count: 4)
         return parceDirectModeResponce(responce)
     }
 
-
-    public func showState() throws {
-        let _ = try readDirectRegs()
+    func writeDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: UInt32 = 0) throws
+    {
+        let request = makeDirectModeRequest(ccon: ccon, cpos: cpos, cdir: cdir, v1: v1, v2: v2)
+        try modbus.writeRegisters(addr: 0, data: request)
     }
 
-    // T1
-    public func unlockFestoDrive() throws {
-        // emptry cmd
-        let _ = try sendRecSelCmd(ccon: [], cpos: [])
+    func writeRecSel(ccon: CCON, cpos: CPOS, recno: UInt8 = 0) throws
+    {
+        let request = makeRecordSelRequest(ccon: ccon, cpos: cpos, recno: recno)
+        try modbus.writeRegisters(addr: 0, data: request)
+    }
+
+    public func showState() throws {
+        let _ = try readDirect()
+    }
+
+    public func lockFestoDrive() throws {
+        var scon: SCON
+        (scon, _, _) = try readWriteRecSel(ccon: [], cpos: [])
+
         for _ in 1...retryCount {
+            if !scon.contains(.drvEn) {
+                return
+            }
             guard !cancel else { throw FestoError.cancelled }
-            // T2
-            let (scon, _, _) = try sendRecSelCmd(ccon: [.drvEn, .opsEn], cpos: [])
+            (scon, _, _) = try readRecSel()
+        }
+        throw FestoError.unlock
+    }
+
+    public func unlockFestoDrive() throws {
+        var scon: SCON
+        // emptry cmd
+        let _ = try writeRecSel(ccon: [], cpos: [])
+        (scon, _, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn], cpos: [])
+
+        for _ in 1...retryCount {
             if scon.contains(.drvEn) {
                 return
             }
+            guard !cancel else { throw FestoError.cancelled }
+            (scon, _, _) = try readRecSel()
         }
         throw FestoError.unlock
     }
 
     public func clearError() throws {
-        // emptry cmd
-        let _ = try sendRecSelCmd(ccon: [.drvEn, .opsEn], cpos: [])
+        var scon: SCON
+        var spos: SPOS
+        (scon, spos, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn, .reset], cpos: [])
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
-            let (scon, spos, _) = try sendRecSelCmd(ccon: [.drvEn, .opsEn, .reset], cpos: [])
-            if !scon.contains(.fault) && !scon.contains(.warn) && !spos.contains(.ask){
+            if !scon.contains(.fault) && !scon.contains(.warn) && !spos.contains(.ask) {
                 return
             }
+            (scon, spos, _) = try readRecSel()
         }
         throw FestoError.unlock
     }
