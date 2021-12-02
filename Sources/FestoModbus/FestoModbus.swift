@@ -13,10 +13,11 @@ extension FixedWidthInteger {
 }
 
 public class FestoModbus {
+    private let sleepTime: useconds_t = 50000
     enum FestoError: Error {
         case cancelled
         case faultOrWarn
-        case unlock
+        case longOperation
     }
 
     private var modbusQueue = DispatchQueue(label: "TraceWay.festoQueue")
@@ -101,11 +102,7 @@ public class FestoModbus {
     {
         let request = makeRecordSelRequest(ccon: ccon, cpos: cpos, recno: recno)
         let responce = try modbus.writeAndReadRegisters(writeAddr: 0, data: request, readAddr: 0, readCount: 4)
-        let (scon, spos, rsb) = parceRecordSelResponce(responce)
-        guard !scon.contains([.fault, .warn]) else {
-            throw FestoError.faultOrWarn
-        }
-        return (scon, spos, rsb)
+        return parceRecordSelResponce(responce)
     }
 
     func readWriteDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: UInt32 = 0) throws ->
@@ -113,11 +110,7 @@ public class FestoModbus {
     {
         let request = makeDirectModeRequest(ccon: ccon, cpos: cpos, cdir: cdir, v1: v1, v2: v2)
         let responce = try modbus.writeAndReadRegisters(writeAddr: 0, data: request, readAddr: 0, readCount: 4)
-        let (scon, spos, sdir, v1, v2) = parceDirectModeResponce(responce)
-        guard !scon.contains([.fault, .warn]) else {
-            throw FestoError.faultOrWarn
-        }
-        return (scon, spos, sdir, v1, v2)
+        return parceDirectModeResponce(responce)
     }
 
     func readRecSel() throws -> (scon: SCON, spos: SPOS, rsb: UInt8)
@@ -153,29 +146,36 @@ public class FestoModbus {
         (scon, _, _) = try readWriteRecSel(ccon: [], cpos: [])
 
         for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
             if !scon.contains([.drvEn]) {
                 return
             }
-            guard !cancel else { throw FestoError.cancelled }
-            usleep(50000)
+            usleep(sleepTime)
             (scon, _, _) = try readRecSel()
         }
-        throw FestoError.unlock
+        throw FestoError.longOperation
     }
 
     public func unlockFestoDrive() throws {
         var scon: SCON
+        _ = try readWriteRecSel(ccon: [], cpos: [])
         (scon, _, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn], cpos: [])
 
         for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
             if scon.contains([.drvEn, .opsEn]) {
                 return
             }
-            guard !cancel else { throw FestoError.cancelled }
-            usleep(50000)
+            usleep(sleepTime)
             (scon, _, _) = try readRecSel()
         }
-        throw FestoError.unlock
+        throw FestoError.longOperation
     }
 
     public func clearError() throws {
@@ -184,11 +184,50 @@ public class FestoModbus {
         (scon, spos, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn, .reset], cpos: [])
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
-            if !scon.contains(.fault) && !scon.contains(.warn) && !spos.contains(.ask) {
+            if scon.isDisjoint(with: [.fault, .warn]) && !spos.contains(.ask) {
                 return
             }
+            usleep(sleepTime)
             (scon, spos, _) = try readRecSel()
         }
-        throw FestoError.unlock
+        throw FestoError.longOperation
+    }
+
+
+    /// Execute homing function
+    public func home() throws {
+        var scon: SCON
+        var spos: SPOS
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.hom, .halt], cdir: [], v1: 0, v2: 0)
+        for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
+            if spos.contains(.moving) {
+                break
+            }
+            if spos.contains([.ref, .mc]) {
+                return
+            }
+            usleep(sleepTime)
+            (scon, spos, _, _, _) = try readDirect()
+        }
+        guard spos.contains(.moving) else {
+            throw FestoError.longOperation
+        }
+
+        for _ in 1...100 {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
+            (scon, spos, _, _, _) = try readDirect()
+            if spos.contains([.ref, .mc]) {
+                return
+            }
+            sleep(1)
+        }
+        throw FestoError.longOperation
     }
 }

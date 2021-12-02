@@ -22,12 +22,14 @@ class TestFestoModbus {
 
     func run() {
         do {
-            // try festo.clearError()
+            try festo.clearError()
 //            try festo.lockFestoDrive()
             try festo.unlockFestoDrive()
-//            try festo.showState()
+            try festo.home()
+            sleep(1)
+            try festo.showState()
         } catch  {
-            print("Clear error \(error)")
+            print("festo error \(error)")
         }
     }
 }
