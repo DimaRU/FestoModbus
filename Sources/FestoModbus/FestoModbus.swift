@@ -262,4 +262,49 @@ public class FestoModbus {
         }
         throw FestoError.longOperation
     }
+
+
+    public func positioning(to pos: UInt32, speed: UInt8) throws {
+        var scon: SCON
+        var spos: SPOS
+
+        let _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct],
+                                    cpos: [.halt])
+        usleep(sleepTime)
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct],
+                                                    cpos: [.start, .halt],
+                                                    cdir: [],
+                                                    v1: speed, v2: pos)
+
+        // wait ask
+        for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
+            if spos.contains(.ask), !spos.contains(.mc) {
+                break
+            }
+            usleep(sleepTime)
+            (scon, spos, _, _, _) = try readDirect()
+        }
+        guard spos.contains(.ask) else {
+            throw FestoError.longOperation
+        }
+
+        usleep(sleepTime * 10)
+        // wait mc
+        for _ in 1...100 {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
+            (scon, spos, _, _, _) = try readDirect()
+            if spos.contains([.mc]) {
+                return
+            }
+            usleep(sleepTime * 10)
+        }
+        throw FestoError.longOperation
+    }
 }

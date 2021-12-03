@@ -25,7 +25,8 @@ class TestFestoModbus {
 //            try festo.clearError()
 //            try festo.lockFestoDrive()
             try festo.unlockFestoDriveDirect()
-            try festo.home()
+            try festo.positioning(to: 50000, speed: 255)
+//            try festo.home()
 ////            sleep(1)
 //            for _ in 1...20 {
 //                try festo.showState()
