@@ -59,7 +59,7 @@ public class FestoModbus {
         return request
     }
 
-    func makeDirectModeRequest(ccon: CCON, cpos: CPOS, cdir: CDIR, v1: UInt8, v2: UInt32) -> [UInt16] {
+    func makeDirectModeRequest(ccon: CCON, cpos: CPOS, cdir: CDIR, v1: UInt8, v2: Int32) -> [UInt16] {
         var request: [UInt16] = .init(repeating: 0, count: 4)
         logger.trace("Send\n\(ccon)\n\(cpos)\n\(cdir)\n v1=\(v1) v2=\(v2)\n")
         request.withUnsafeMutableBytes { ptr in
@@ -87,14 +87,14 @@ public class FestoModbus {
         }
     }
 
-    func parceDirectModeResponce(_ responce: [UInt16]) -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32) {
+    func parceDirectModeResponce(_ responce: [UInt16]) -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: Int32) {
         assert(responce.count == 4, "Reply size != 4 \(responce.count)")
         return responce.withUnsafeBytes { ptr in
             let scon = SCON(rawValue: ptr[1])
             let spos = SPOS(rawValue: ptr[0])
             let sdir = SDIR(rawValue: ptr[3])
             let v1 = ptr[2]
-            let v2: UInt32 = UInt32(responce[2]) << 16 + UInt32(responce[3])
+            let v2: Int32 = (Int32(responce[2]) << 16) | Int32(responce[3])
             logger.trace("Receive\n\(scon)\n\(spos)\n\(sdir)\n v1=\(v1) v2=\(v2)\n")
             return (scon, spos, sdir, v1, v2)
         }
@@ -107,8 +107,8 @@ public class FestoModbus {
         return parceRecordSelResponce(responce)
     }
 
-    func readWriteDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: UInt32 = 0) throws ->
-                                            (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32)
+    func readWriteDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: Int32 = 0) throws ->
+                                            (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: Int32)
     {
         let request = makeDirectModeRequest(ccon: ccon, cpos: cpos, cdir: cdir, v1: v1, v2: v2)
         let responce = try modbus.writeAndReadRegisters(writeAddr: 0, data: request, readAddr: 0, readCount: 4)
@@ -121,13 +121,13 @@ public class FestoModbus {
         return parceRecordSelResponce(responce)
     }
 
-    func readDirect() throws -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: UInt32)
+    func readDirect() throws -> (scon: SCON, spos: SPOS, sdir: SDIR, v1: UInt8, v2: Int32)
     {
         let responce = try modbus.readRegisters(addr: 0, count: 4)
         return parceDirectModeResponce(responce)
     }
 
-    func writeDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: UInt32 = 0) throws
+    func writeDirect(ccon: CCON, cpos: CPOS, cdir: CDIR = [], v1: UInt8 = 0, v2: Int32 = 0) throws
     {
         let request = makeDirectModeRequest(ccon: ccon, cpos: cpos, cdir: cdir, v1: v1, v2: v2)
         try modbus.writeRegisters(addr: 0, data: request)
@@ -264,7 +264,7 @@ public class FestoModbus {
     }
 
 
-    public func positioning(to pos: UInt32, speed: UInt8) throws {
+    public func positioning(to pos: Int32, speed: UInt8) throws {
         var scon: SCON
         var spos: SPOS
 
@@ -294,7 +294,8 @@ public class FestoModbus {
 
         usleep(sleepTime * 10)
         // wait mc
-        for _ in 1...100 {
+        for i in 1...200 {
+            print(i)
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
