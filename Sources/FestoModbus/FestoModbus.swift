@@ -20,17 +20,12 @@ public class FestoModbus {
         case longOperation
     }
 
-    private var modbusQueue = DispatchQueue(label: "TraceWay.festoQueue")
     private var modbus: SwiftyModbus
     private let logger = Logger(label: "FestoModbus")
-    private let maxLevels: Int
-    private let levelHeight: Int
     private let retryCount = 10
     private var cancel = false
 
-    public init(address: String, port: Int32, maxLevels: Int, levelHeight: Int) {
-        self.maxLevels = maxLevels
-        self.levelHeight = levelHeight
+    public init(address: String, port: Int32) {
         modbus = SwiftyModbus(address: address, port: port)
         modbus.responseTimeout = 1
         modbus.byteTimeout = 0.5
@@ -42,10 +37,6 @@ public class FestoModbus {
 
     deinit {
         modbus.disconnect()
-    }
-
-    public func forceCancel() {
-        cancel = true
     }
 
     func makeRecordSelRequest(ccon: CCON, cpos: CPOS, recno: UInt8) -> [UInt16] {
@@ -161,9 +152,11 @@ public class FestoModbus {
         throw FestoError.longOperation
     }
 
+    /// Unlock drive, set record selection state
     public func unlockFestoDriveRecSel() throws {
         var scon: SCON
         _ = try readWriteRecSel(ccon: [], cpos: [])
+        usleep(sleepTime)
         (scon, _, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn], cpos: [])
 
         for _ in 1...retryCount {
@@ -180,6 +173,7 @@ public class FestoModbus {
         throw FestoError.longOperation
     }
 
+    /// Unlock drive and set direct profile (FHPP profile)
     public func unlockFestoDriveDirect() throws {
         var scon: SCON
         var spos: SPOS
@@ -208,6 +202,7 @@ public class FestoModbus {
         throw FestoError.longOperation
     }
 
+    /// Clear fault or warning state
     public func clearError() throws {
         var scon: SCON
         var spos: SPOS
@@ -223,8 +218,21 @@ public class FestoModbus {
         throw FestoError.longOperation
     }
 
+    /// Check drive locked state
+    /// - Returns: true if locked
+    public func isLocked() throws -> Bool {
+        let (scon, _, _, _, _) = try readDirect()
+        return !scon.contains([.drvEn, .opsEn, .directMode])
+    }
 
-    /// Execute homing function
+    /// Check fault / warning state
+    /// - Returns: true if fault or warning
+    public func isError() throws -> Bool {
+        let (scon, _, _, _, _) = try readDirect()
+        return !scon.isDisjoint(with: [.fault, .warn])
+    }
+
+    /// Search home position
     public func home() throws {
         var scon: SCON
         var spos: SPOS
@@ -263,8 +271,16 @@ public class FestoModbus {
         throw FestoError.longOperation
     }
 
+    /// Travel to position
+    /// - Parameters:
+    ///   - pos: position in mm. Must be in 0...300
+    ///   - speed: Motion speed 0 - 255, 255 = 100%
+    public func positioning(to pos: Float, speed: UInt8) throws {
+        let posInt = Int32(pos * 100)
+        try positioningI(to: posInt, speed: speed)
+    }
 
-    public func positioning(to pos: Int32, speed: UInt8) throws {
+    public func positioningI(to pos: Int32, speed: UInt8) throws {
         var scon: SCON
         var spos: SPOS
 
@@ -307,5 +323,14 @@ public class FestoModbus {
             usleep(sleepTime * 10)
         }
         throw FestoError.longOperation
+    }
+
+    /// Cancel operation and any motion
+    public func forceCancel() throws {
+        cancel = true
+
+        _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [])
+        usleep(sleepTime * 10)
+        _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.clear])
     }
 }

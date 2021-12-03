@@ -9,7 +9,7 @@ import Foundation
 import FestoModbus
 
 class TestFestoModbus {
-    let festo = FestoModbus.init(address: "192.1.1.32", port: 502, maxLevels: 21, levelHeight: 13)
+    let festo = FestoModbus.init(address: "192.1.1.32", port: 502)
 
     init() {
         do {
@@ -24,8 +24,9 @@ class TestFestoModbus {
         do {
 //            try festo.clearError()
 //            try festo.lockFestoDrive()
-            try festo.unlockFestoDriveDirect()
-            try festo.positioning(to: 250000, speed: 255)
+//            try festo.unlockFestoDriveDirect()
+//            try festo.positioning(to: 000000, speed: 255)
+            try festo.forceCancel()
 //            try festo.home()
 ////            sleep(1)
 //            for _ in 1...20 {
