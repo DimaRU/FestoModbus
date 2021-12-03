@@ -6,15 +6,14 @@ import Foundation
 import SwiftyModbus
 import Logging
 
-extension FixedWidthInteger {
-    var bytes: [UInt8] {
-        withUnsafeBytes(of: self, Array.init)
-    }
+
+public protocol FestoModbusProtocol: AnyObject {
+    func current(position: Float)
 }
 
 public class FestoModbus {
     private let sleepTime: useconds_t = 50000
-    enum FestoError: Error {
+    public enum FestoError: Error {
         case cancelled
         case faultOrWarn
         case longOperation
@@ -23,7 +22,8 @@ public class FestoModbus {
     private var modbus: SwiftyModbus
     private let logger = Logger(label: "FestoModbus")
     private let retryCount = 10
-    private var cancel = false
+    public var cancel = false
+    public weak var delegate: FestoModbusProtocol?
 
     public init(address: String, port: Int32) {
         modbus = SwiftyModbus(address: address, port: port)
@@ -283,6 +283,7 @@ public class FestoModbus {
     public func positioningI(to pos: Int32, speed: UInt8) throws {
         var scon: SCON
         var spos: SPOS
+        var v2: Int32
 
         let _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct],
                                     cpos: [.halt])
@@ -316,7 +317,9 @@ public class FestoModbus {
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
             }
-            (scon, spos, _, _, _) = try readDirect()
+            (scon, spos, _, _, v2) = try readDirect()
+            let curPos = Float(v2) / 100
+            delegate?.current(position: curPos)
             if spos.contains([.mc]) {
                 return
             }
@@ -332,5 +335,11 @@ public class FestoModbus {
         _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [])
         usleep(sleepTime * 10)
         _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.clear])
+    }
+}
+
+extension FixedWidthInteger {
+    var bytes: [UInt8] {
+        withUnsafeBytes(of: self, Array.init)
     }
 }
