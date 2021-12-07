@@ -8,22 +8,34 @@
 import Foundation
 import PromiseKit
 
-final public class FestoModbusPromise: FestoModbusProtocol {
+public protocol FestoPromiseProtocol: AnyObject {
+    func current(position: Float)
+}
 
+final public class FestoPromise: FestoModbusProtocol {
     let festoQueue = DispatchQueue.init(label: "FestoModbus", qos: .utility)
     let festoModbus: FestoModbus
+    let coefficient: Float
+    weak var delegate: FestoPromiseProtocol?
 
-    public init(address: String, port: Int32) {
+    public init(address: String, port: Int32, coefficient: Float) {
+        self.coefficient = coefficient
         festoModbus = FestoModbus(address: address, port: port)
         festoModbus.delegate = self
     }
 
-    public func current(position: Float) {
+    public func current(position: Int32) {
+        let posFloat = Float(position) / coefficient
+        delegate?.current(position: posFloat)
     }
 
-    public func homing() -> Promise<Void> {
-        return firstly {
-            self.connect()
+    /// Initialize drive for use
+    /// - Returns: Promise<Void>
+    public func driveInit() -> Promise<Void> {
+        Promise { seal in
+            festoQueue.async {
+                self.connect().pipe(to: seal.resolve(_:))
+            }
         }.then(on: festoQueue) {
             self.unlockFestoDriveDirect()
         }.then(on: festoQueue) {
@@ -33,6 +45,46 @@ final public class FestoModbusPromise: FestoModbusProtocol {
         }
     }
 
+    /// Travel to position
+    /// - Parameters:
+    ///   - pos: position in mm. Must be in 0...300
+    public func travel(tp pos: Float) -> Promise<Void> {
+        Promise { seal in
+            festoQueue.async {
+                self.connect().pipe(to: seal.resolve(_:))
+            }
+        }.then(on: festoQueue) {
+            self.unlockFestoDriveDirect()
+        }.then(on: festoQueue) {
+            self.positioning(to: Int32(pos * self.coefficient), speed: 255)
+        }.then(on: festoQueue) {
+            self.disconnect()
+        }
+    }
+
+    /// Get current drive position
+    public func getPosition() -> Promise<Float> {
+        Promise { seal in
+            festoQueue.async {
+                self.connect().pipe(to: seal.resolve(_:))
+            }
+        }.then(on: festoQueue) {
+            self.unlockFestoDriveDirect()
+        }.then(on: festoQueue) {
+            self.readPosition()
+        }.then(on: festoQueue) { pos in
+            self.disconnect().map { Float(pos) / self.coefficient }
+        }
+    }
+
+
+
+    func readPosition() -> Promise<Int32> {
+        Promise<Int32> { seal in
+            let pos = try festoModbus.readPosition()
+            seal.fulfill(pos)
+        }
+    }
 
     func clearError() -> Promise<Void> {
         Promise<Void> { seal in

@@ -8,7 +8,7 @@ import Logging
 
 
 public protocol FestoModbusProtocol: AnyObject {
-    func current(position: Float)
+    func current(position: Int32)
 }
 
 final public class FestoModbus {
@@ -21,6 +21,7 @@ final public class FestoModbus {
         case cancelled
         case faultOrWarn
         case longOperation
+        case unknownPosition
     }
 
     public var cancel = false
@@ -144,8 +145,19 @@ final public class FestoModbus {
     }
 
     // MARK: Public interface
-    public func showState() throws {
-        let _ = try readDirect()
+
+
+    /// Read current direct position
+    /// - Returns: position (Int32), may be signed
+    public func readPosition() throws -> Int32 {
+        let (scon, spos, _, _, v2) = try readDirect()
+        guard scon.isDisjoint(with: [.fault, .warn]) else {
+            throw FestoError.faultOrWarn
+        }
+        guard spos.contains(.ref) else {
+            throw FestoError.unknownPosition
+        }
+        return v2
     }
 
     /// Lock drive
@@ -288,15 +300,6 @@ final public class FestoModbus {
 
     /// Travel to position
     /// - Parameters:
-    ///   - pos: position in mm. Must be in 0...300
-    ///   - speed: Motion speed 0 - 255, 255 = 100%
-    public func positioning(to pos: Float, speed: UInt8) throws {
-        let posInt = Int32(pos * 100)
-        try positioning(to: posInt, speed: speed)
-    }
-
-    /// Travel to position
-    /// - Parameters:
     ///   - pos: Position (signed), depends of drive settings
     ///   - speed: Motion speed 0 - 255, 255 = 100%
     public func positioning(to pos: Int32, speed: UInt8) throws {
@@ -336,8 +339,7 @@ final public class FestoModbus {
                 throw FestoError.faultOrWarn
             }
             (scon, spos, _, _, v2) = try readDirect()
-            let curPos = Float(v2) / 100
-            delegate?.current(position: curPos)
+            delegate?.current(position: v2)
             if spos.contains([.mc]) {
                 return
             }
