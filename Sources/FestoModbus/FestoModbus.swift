@@ -11,33 +11,46 @@ public protocol FestoModbusProtocol: AnyObject {
     func current(position: Float)
 }
 
-public class FestoModbus {
+final public class FestoModbus {
     private let sleepTime: useconds_t = 50000
+    private var modbus: SwiftyModbus
+    private let logger = Logger(label: "FestoModbus")
+    private let retryCount = 10
+
     public enum FestoError: Error {
         case cancelled
         case faultOrWarn
         case longOperation
     }
 
-    private var modbus: SwiftyModbus
-    private let logger = Logger(label: "FestoModbus")
-    private let retryCount = 10
     public var cancel = false
     public weak var delegate: FestoModbusProtocol?
 
+    /// Initialise
+    /// - Parameters:
+    ///   - address: Festo drive IP
+    ///   - port: tcp port
     public init(address: String, port: Int32) {
         modbus = SwiftyModbus(address: address, port: port)
         modbus.responseTimeout = 1
         modbus.byteTimeout = 0.5
     }
 
+    /// Connect to drive controller
     public func connect() throws {
         try modbus.connect()
+    }
+
+    /// Disconnect drive controller
+    public func disconnect() throws {
+        modbus.disconnect()
     }
 
     deinit {
         modbus.disconnect()
     }
+
+    // MARK: Internal funcs
 
     func makeRecordSelRequest(ccon: CCON, cpos: CPOS, recno: UInt8) -> [UInt16] {
         var request: [UInt16] = .init(repeating: 0, count: 4)
@@ -130,10 +143,12 @@ public class FestoModbus {
         try modbus.writeRegisters(addr: 0, data: request)
     }
 
+    // MARK: Public interface
     public func showState() throws {
         let _ = try readDirect()
     }
 
+    /// Lock drive
     public func lockFestoDrive() throws {
         var scon: SCON
         (scon, _, _) = try readWriteRecSel(ccon: [], cpos: [])
@@ -173,7 +188,7 @@ public class FestoModbus {
         throw FestoError.longOperation
     }
 
-    /// Unlock drive and set direct profile (FHPP profile)
+    /// Unlock drive and set direct positioning profile
     public func unlockFestoDriveDirect() throws {
         var scon: SCON
         var spos: SPOS
@@ -277,10 +292,14 @@ public class FestoModbus {
     ///   - speed: Motion speed 0 - 255, 255 = 100%
     public func positioning(to pos: Float, speed: UInt8) throws {
         let posInt = Int32(pos * 100)
-        try positioningI(to: posInt, speed: speed)
+        try positioning(to: posInt, speed: speed)
     }
 
-    public func positioningI(to pos: Int32, speed: UInt8) throws {
+    /// Travel to position
+    /// - Parameters:
+    ///   - pos: Position (signed), depends of drive settings
+    ///   - speed: Motion speed 0 - 255, 255 = 100%
+    public func positioning(to pos: Int32, speed: UInt8) throws {
         var scon: SCON
         var spos: SPOS
         var v2: Int32
@@ -311,8 +330,7 @@ public class FestoModbus {
 
         usleep(sleepTime * 10)
         // wait mc
-        for i in 1...200 {
-            print(i)
+        for _ in 1...200 {
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
