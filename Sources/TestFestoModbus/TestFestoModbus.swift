@@ -6,36 +6,33 @@
 //
 
 import Foundation
+import PromiseKit
 import FestoModbus
 
-class TestFestoModbus {
-    let festo = FestoModbus.init(address: "192.1.1.32", port: 502)
-
-    init() {
-        do {
-            try festo.connect()
-        } catch  {
-            print("Connection error \(error)")
-            fatalError("Connection error \(error)")
-        }
+class TestFestoModbus: FestoPromiseProtocol {
+    func current(position: Float) {
+        print("Pos in motion:", position)
     }
 
+    let festo = FestoPromise(address: "192.1.1.32", port: 502, coefficient: 1000)
     func run() {
-        do {
-//            try festo.clearError()
-//            try festo.lockFestoDrive()
-//            try festo.unlockFestoDriveDirect()
-//            try festo.positioning(to: 000000, speed: 255)
-            try festo.forceCancel()
-//            try festo.home()
-////            sleep(1)
-//            for _ in 1...20 {
-//                try festo.showState()
-//                usleep(200000)
-//            }
-
-        } catch  {
-            print("festo error \(error)")
+        festo.delegate = self
+        firstly {
+//            festo.driveInit()
+//        }.then {
+            self.festo.getPosition()
+        }.done { pos in
+            print("Position:", pos)
+        }.then {
+            self.festo.travel(to: 30)
+        }.then {
+            self.festo.getPosition()
+        }.done {
+            print("Position1:", $0)
+        }.catch { error in
+            print(error)
+        }.finally {
+            exit(1)
         }
     }
 }

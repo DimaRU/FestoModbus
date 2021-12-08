@@ -16,7 +16,7 @@ final public class FestoPromise: FestoModbusProtocol {
     let festoQueue = DispatchQueue.init(label: "FestoModbus", qos: .utility)
     let festoModbus: FestoModbus
     let coefficient: Float
-    weak var delegate: FestoPromiseProtocol?
+    public weak var delegate: FestoPromiseProtocol?
 
     public init(address: String, port: Int32, coefficient: Float) {
         self.coefficient = coefficient
@@ -48,7 +48,7 @@ final public class FestoPromise: FestoModbusProtocol {
     /// Travel to position
     /// - Parameters:
     ///   - pos: position in mm. Must be in 0...300
-    public func travel(tp pos: Float) -> Promise<Void> {
+    public func travel(to pos: Float) -> Promise<Void> {
         Promise { seal in
             festoQueue.async {
                 self.connect().pipe(to: seal.resolve(_:))
@@ -103,6 +103,7 @@ final public class FestoPromise: FestoModbusProtocol {
     func disconnect() -> Promise<Void> {
         Promise<Void> { seal in
             try festoModbus.disconnect()
+            usleep(100000)
             seal.fulfill(())
         }
     }

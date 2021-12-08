@@ -20,7 +20,7 @@ puppy.add(console)
 LoggingSystem.bootstrap {
     var handler = PuppyLogHandler(label: $0, puppy: puppy)
     // Set the logging level.
-    handler.logLevel = .trace
+    handler.logLevel = .error
     return handler
 }
 
@@ -29,4 +29,4 @@ let log = Logger(label: logLabel)
 print("Start")
 let festo = TestFestoModbus()
 festo.run()
-usleep(100000)
+RunLoop.main.run()

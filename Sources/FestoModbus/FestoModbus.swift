@@ -331,9 +331,9 @@ final public class FestoModbus {
             throw FestoError.longOperation
         }
 
-        usleep(sleepTime * 10)
+        usleep(sleepTime * 2)
         // wait mc
-        for _ in 1...200 {
+        for _ in 1...1000 {
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
@@ -343,7 +343,7 @@ final public class FestoModbus {
             if spos.contains([.mc]) {
                 return
             }
-            usleep(sleepTime * 10)
+            usleep(sleepTime * 2)
         }
         throw FestoError.longOperation
     }
