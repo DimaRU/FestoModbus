@@ -150,6 +150,7 @@ final public class FestoModbus {
     /// Read current direct position
     /// - Returns: position (Int32), may be signed
     public func readPosition() throws -> Int32 {
+        logger.trace(#function)
         let (scon, spos, _, _, v2) = try readDirect()
         guard scon.isDisjoint(with: [.fault, .warn]) else {
             throw FestoError.faultOrWarn
@@ -162,6 +163,7 @@ final public class FestoModbus {
 
     /// Lock drive
     public func lockFestoDrive() throws {
+        logger.trace(#function)
         var scon: SCON
         (scon, _, _) = try readWriteRecSel(ccon: [], cpos: [])
 
@@ -181,6 +183,7 @@ final public class FestoModbus {
 
     /// Unlock drive, set record selection state
     public func unlockFestoDriveRecSel() throws {
+        logger.trace(#function)
         var scon: SCON
         _ = try readWriteRecSel(ccon: [], cpos: [])
         usleep(sleepTime)
@@ -202,6 +205,7 @@ final public class FestoModbus {
 
     /// Unlock drive and set direct positioning profile
     public func unlockFestoDriveDirect() throws {
+        logger.trace(#function)
         var scon: SCON
         var spos: SPOS
 
@@ -231,6 +235,7 @@ final public class FestoModbus {
 
     /// Clear fault or warning state
     public func clearError() throws {
+        logger.trace(#function)
         var scon: SCON
         var spos: SPOS
         (scon, spos, _) = try readWriteRecSel(ccon: [.drvEn, .opsEn, .reset], cpos: [])
@@ -259,11 +264,22 @@ final public class FestoModbus {
         return !scon.isDisjoint(with: [.fault, .warn])
     }
 
+    /// Check drive ready
+    /// - Returns: true if ready
+    public func isReady() throws -> Bool {
+        let (scon, spos, _, _, _) = try readDirect()
+        return scon.contains([.drvEn, .opsEn, .directMode]) && spos.contains([.ref, .mc])
+    }
+
     /// Search home position
     public func home() throws {
+        logger.trace(#function)
         var scon: SCON
         var spos: SPOS
+
         (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.hom, .halt])
+
+        logger.trace("\(#function) wait ask")
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
@@ -282,9 +298,10 @@ final public class FestoModbus {
             throw FestoError.longOperation
         }
 
-        sleep(1)
+        usleep(sleepTime * 5)
+        logger.trace("\(#function) wait mc")
 
-        for _ in 1...100 {
+        for _ in 1...1000 {
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
@@ -293,7 +310,7 @@ final public class FestoModbus {
             if spos.contains([.ref, .mc]) {
                 return
             }
-            sleep(1)
+            usleep(sleepTime * 5)
         }
         throw FestoError.longOperation
     }
@@ -303,6 +320,7 @@ final public class FestoModbus {
     ///   - pos: Position (signed), depends of drive settings
     ///   - speed: Motion speed 0 - 255, 255 = 100%
     public func positioning(to pos: Int32, speed: UInt8) throws {
+        logger.trace(#function)
         var scon: SCON
         var spos: SPOS
         var v2: Int32
@@ -350,6 +368,7 @@ final public class FestoModbus {
 
     /// Cancel operation and any motion
     public func forceCancel() throws {
+        logger.trace(#function)
         cancel = true
 
         _ = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [])

@@ -39,7 +39,9 @@ final public class FestoPromise: FestoModbusProtocol {
         }.then(on: festoQueue) {
             self.unlockFestoDriveDirect()
         }.then(on: festoQueue) {
-            self.home()
+            self.isReady()
+        }.then(on: festoQueue) { ready in
+            ready ? Promise.value(()) : self.home()
         }.then(on: festoQueue) {
             self.disconnect()
         }
@@ -132,6 +134,13 @@ final public class FestoPromise: FestoModbusProtocol {
     func isLocked() -> Promise<Bool> {
         Promise<Bool> { seal in
             let r = try festoModbus.isLocked()
+            seal.fulfill(r)
+        }
+    }
+
+    func isReady() -> Promise<Bool> {
+        Promise<Bool> { seal in
+            let r = try festoModbus.isReady()
             seal.fulfill(r)
         }
     }
