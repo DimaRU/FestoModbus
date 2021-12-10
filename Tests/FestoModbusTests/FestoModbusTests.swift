@@ -4,20 +4,22 @@ import PromiseKit
 import Puppy
 import Logging
 
-let console = ConsoleLogger("TestFestoModbus")
 
 final class FestoModbusTests: XCTestCase {
-    let festo = FestoPromise(address: "192.1.1.32", port: 502, coefficient: 1000)
+    var festo: FestoPromise!
+    let console = ConsoleLogger("TestFestoModbus")
+    let puppy = Puppy.default
 
-    override class func setUp() {
-        let puppy = Puppy.default
+    override func setUp() {
         puppy.add(console)
+        setbuf(stdout, nil)
 
         LoggingSystem.bootstrap {
-            var handler = PuppyLogHandler(label: $0, puppy: puppy)
+            var handler = PuppyLogHandler(label: $0, puppy: self.puppy)
             handler.logLevel = .trace
             return handler
         }
+        festo = FestoPromise(address: "192.1.1.32", port: 502, coefficient: 1000)
     }
 
     func testExample() throws {
