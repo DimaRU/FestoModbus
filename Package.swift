@@ -5,11 +5,9 @@ import PackageDescription
 let package = Package(
     name: "FestoModbus",
     platforms: [.macOS(.v11)],
-//    products: [
-//        .library(
-//            name: "FestoModbus",
-//            targets: ["FestoModbus"]),
-//    ],
+    products: [
+        .library(name: "FestoModbus", targets: ["FestoModbus"]),
+    ],
     dependencies: [
         .package(url: "https://git.dev-og.com/d.borovikov/SwiftyModbus.git", from: "2.0.0"),
         .package(url: "https://github.com/mxcl/PromiseKit.git", .upToNextMajor(from: "6.16.2")),
@@ -17,19 +15,19 @@ let package = Package(
         .package(url: "https://github.com/sushichop/Puppy.git", from: "0.3.0"),
     ],
     targets: [
-        .executableTarget(
-            name: "TestFestoModbus",
-            dependencies: [
-                "Puppy",
-                "FestoModbus",
-                "PromiseKit",
-            ]),
         .target(
             name: "FestoModbus",
             dependencies: [
                 "SwiftyModbus",
                 "PromiseKit",
                 .product(name: "Logging", package: "swift-log"),
+            ]),
+        .testTarget(
+            name: "FestoModbusTests",
+            dependencies: [
+                "FestoModbus",
+                "Puppy",
+                "PromiseKit",
             ]),
     ]
 )
