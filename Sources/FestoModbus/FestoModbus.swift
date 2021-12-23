@@ -55,7 +55,9 @@ final public class FestoModbus {
 
     func makeRecordSelRequest(ccon: CCON, cpos: CPOS, recno: UInt8) -> [UInt16] {
         var request: [UInt16] = .init(repeating: 0, count: 4)
+        #if FESTO_DEBUG
         logger.trace("Send\n\(ccon)\n\(cpos)\nrecno=\(recno)\n")
+        #endif
         request.withUnsafeMutableBytes { ptr in
             ptr[1] = ccon.rawValue
             ptr[0] = cpos.rawValue
@@ -66,7 +68,9 @@ final public class FestoModbus {
 
     func makeDirectModeRequest(ccon: CCON, cpos: CPOS, cdir: CDIR, v1: UInt8, v2: Int32) -> [UInt16] {
         var request: [UInt16] = .init(repeating: 0, count: 4)
+        #if FESTO_DEBUG
         logger.trace("Send\n\(ccon)\n\(cpos)\n\(cdir)\n v1=\(v1) v2=\(v2)\n")
+        #endif
         request.withUnsafeMutableBytes { ptr in
             ptr[1] = ccon.rawValue
             ptr[0] = cpos.rawValue
@@ -87,7 +91,9 @@ final public class FestoModbus {
             let scon = SCON(rawValue: ptr[1])
             let spos = SPOS(rawValue: ptr[0])
             let rsb = ptr[2]
+            #if FESTO_DEBUG
             logger.trace("Receive\n\(scon)\n\(spos)\nrsb=\(rsb)\n")
+            #endif
             return (scon, spos, rsb)
         }
     }
@@ -100,7 +106,9 @@ final public class FestoModbus {
             let sdir = SDIR(rawValue: ptr[3])
             let v1 = ptr[2]
             let v2: Int32 = (Int32(responce[2]) << 16) | Int32(responce[3])
+            #if FESTO_DEBUG
             logger.trace("Receive\n\(scon)\n\(spos)\n\(sdir)\n v1=\(v1) v2=\(v2)\n")
+            #endif
             return (scon, spos, sdir, v1, v2)
         }
     }
