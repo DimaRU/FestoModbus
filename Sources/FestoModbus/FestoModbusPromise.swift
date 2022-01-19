@@ -41,7 +41,7 @@ final public class FestoPromise: FestoModbusProtocol {
                     if !isReady {
                         try festoModbus.home()
                     }
-                    try festoModbus.disconnect()
+                    festoModbus.disconnect()
                     usleep(100000)
                     seal.fulfill(())
                 } catch {
@@ -61,7 +61,7 @@ final public class FestoPromise: FestoModbusProtocol {
                     try festoModbus.connect()
                     try festoModbus.unlockFestoDriveDirect()
                     try festoModbus.positioning(to: Int32(pos * self.coefficient), speed: 255)
-                    try festoModbus.disconnect()
+                    festoModbus.disconnect()
                     usleep(100000)
                     seal.fulfill(())
                 } catch {
@@ -79,7 +79,7 @@ final public class FestoPromise: FestoModbusProtocol {
                     try festoModbus.connect()
                     try festoModbus.unlockFestoDriveDirect()
                     let pos = try festoModbus.readPosition()
-                    try festoModbus.disconnect()
+                    festoModbus.disconnect()
                     usleep(100000)
                     seal.fulfill(Float(pos) / self.coefficient)
                 } catch {
@@ -112,7 +112,7 @@ final public class FestoPromise: FestoModbusProtocol {
 
     func disconnect() -> Promise<Void> {
         Promise<Void> { seal in
-            try festoModbus.disconnect()
+            festoModbus.disconnect()
             usleep(100000)
             seal.fulfill(())
         }

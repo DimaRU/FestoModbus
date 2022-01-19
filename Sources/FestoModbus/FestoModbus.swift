@@ -43,7 +43,7 @@ final public class FestoModbus {
     }
 
     /// Disconnect drive controller
-    public func disconnect() throws {
+    public func disconnect() {
         modbus.disconnect()
     }
 
