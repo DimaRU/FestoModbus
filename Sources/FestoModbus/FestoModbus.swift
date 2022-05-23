@@ -14,7 +14,7 @@ public protocol FestoModbusProtocol: AnyObject {
 final public class FestoModbus {
     private let sleepTime: useconds_t = 50000
     private var modbus: SwiftyModbus
-    private let logger = Logger(label: "FestoModbus")
+    private var logger = Logger(label: "FestoModbus")
     private let retryCount = 10
 
     public enum FestoError: Error {
@@ -22,6 +22,7 @@ final public class FestoModbus {
         case faultOrWarn
         case longOperation
         case unknownPosition
+        case locked
     }
 
     public var cancel = false
@@ -199,6 +200,9 @@ final public class FestoModbus {
 
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
+            guard !scon.contains(.lock) else {
+                throw FestoError.locked
+            }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
             }
@@ -218,6 +222,9 @@ final public class FestoModbus {
         var spos: SPOS
 
         (scon, spos, _, _, _) = try readDirect()
+        guard !scon.contains(.lock) else {
+            throw FestoError.locked
+        }
         if !scon.isDisjoint(with: [.fault, .warn]) {
             try clearError()
         }
