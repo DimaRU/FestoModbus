@@ -36,6 +36,10 @@ final public class FestoModbus {
         modbus = SwiftyModbus(address: address, port: port)
         modbus.responseTimeout = 1
         modbus.byteTimeout = 0.5
+        #if FESTO_DEBUG
+        logger.logLevel = .trace
+        logger.trace("Festo drive init \(address):\(port)")
+        #endif
     }
 
     /// Connect to drive controller
@@ -249,7 +253,7 @@ final public class FestoModbus {
     }
 
     /// Clear fault or warning state
-    public func clearError() throws {
+    public func clearErrorPos() throws {
         logger.trace(#function)
         var scon: SCON
         var spos: SPOS
@@ -261,6 +265,23 @@ final public class FestoModbus {
             }
             usleep(sleepTime)
             (scon, spos, _) = try readRecSel()
+        }
+        throw FestoError.longOperation
+    }
+
+    /// Clear fault or warning state
+    public func clearError() throws {
+        logger.trace(#function)
+        var scon: SCON
+        var spos: SPOS
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .reset, .direct], cpos: [])
+        for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            if scon.isDisjoint(with: [.fault, .warn]) && !spos.contains(.ask) {
+                return
+            }
+            usleep(sleepTime)
+            (scon, spos, _, _, _) = try readDirect()
         }
         throw FestoError.longOperation
     }
