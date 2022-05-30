@@ -29,7 +29,7 @@ final public class FestoPromise: FestoModbusProtocol {
         delegate?.current(position: posFloat)
     }
 
-    /// Initialize drive for use
+    /// Initialize drive
     /// - Returns: Promise<Void>
     public func driveInit() -> Promise<Void> {
         Promise { seal in
@@ -44,8 +44,10 @@ final public class FestoPromise: FestoModbusProtocol {
                     festoModbus.disconnect()
                     usleep(100000)
                     seal.fulfill(())
+                    festoModbus.logger.logLevel = .info
                 } catch {
                     seal.reject(error)
+                    festoModbus.logger.logLevel = .info
                 }
             }
         }

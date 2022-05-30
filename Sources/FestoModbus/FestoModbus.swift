@@ -12,9 +12,9 @@ public protocol FestoModbusProtocol: AnyObject {
 }
 
 final public class FestoModbus {
+    var logger = Logger(label: "FestoModbus")
     private let sleepTime: useconds_t = 50000
     private var modbus: SwiftyModbus
-    private var logger = Logger(label: "FestoModbus")
     private let retryCount = 10
 
     public enum FestoError: Error {

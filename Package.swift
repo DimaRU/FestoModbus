@@ -21,7 +21,9 @@ let package = Package(
                 "SwiftyModbus",
                 "PromiseKit",
                 .product(name: "Logging", package: "swift-log"),
-            ]),
+            ],
+            swiftSettings: [.define("FESTO_DEBUG")]
+        ),
         .testTarget(
             name: "FestoModbusTests",
             dependencies: [
