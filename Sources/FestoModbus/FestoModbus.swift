@@ -275,6 +275,8 @@ final public class FestoModbus {
         var scon: SCON
         var spos: SPOS
         (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .reset, .direct], cpos: [])
+        usleep(sleepTime)
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [])
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
             if scon.isDisjoint(with: [.fault, .warn]) && !spos.contains(.ask) {

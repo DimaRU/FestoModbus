@@ -11,21 +11,21 @@
         }
       },
       {
-        "package": "Puppy",
-        "repositoryURL": "https://github.com/sushichop/Puppy.git",
-        "state": {
-          "branch": null,
-          "revision": "95ce04b0e778b8d7c351876bc98bbf68328dfc9b",
-          "version": "0.3.1"
-        }
-      },
-      {
         "package": "swift-log",
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
           "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
           "version": "1.4.2"
+        }
+      },
+      {
+        "package": "swift-log-syslog",
+        "repositoryURL": "https://github.com/DimaRU/swift-log-syslog.git",
+        "state": {
+          "branch": "master",
+          "revision": "47e6bc9ff8047fd91936d7b87b39a044fa761bcb",
+          "version": null
         }
       },
       {

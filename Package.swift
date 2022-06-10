@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 
 import PackageDescription
 
@@ -12,7 +12,7 @@ let package = Package(
         .package(url: "https://git.dev-og.com/d.borovikov/SwiftyModbus.git", from: "2.0.0"),
         .package(url: "https://github.com/mxcl/PromiseKit.git", .upToNextMajor(from: "6.16.2")),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
-        .package(url: "https://github.com/sushichop/Puppy.git", from: "0.3.0"),
+        .package(url: "https://github.com/DimaRU/swift-log-syslog.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -26,8 +26,8 @@ let package = Package(
             name: "FestoModbusTests",
             dependencies: [
                 "FestoModbus",
-                "Puppy",
                 "PromiseKit",
+                .product(name: "LoggingSyslog", package: "swift-log-syslog"),
             ]),
     ]
 )

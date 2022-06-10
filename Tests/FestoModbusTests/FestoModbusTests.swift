@@ -1,21 +1,18 @@
 import XCTest
 @testable import FestoModbus
 import PromiseKit
-import Puppy
 import Logging
+import LoggingSyslog
 
 
 final class FestoModbusTests: XCTestCase {
     var festo: FestoPromise!
-    let console = ConsoleLogger("TestFestoModbus")
-    let puppy = Puppy.default
 
     override func setUp() {
-        puppy.add(console)
         setbuf(stdout, nil)
 
         LoggingSystem.bootstrap {
-            var handler = PuppyLogHandler(label: $0, puppy: self.puppy)
+            var handler = SyslogLogHandler(label: $0, ident: nil, facility: .local1, option:  [.perror])
             handler.logLevel = .trace
             return handler
         }
