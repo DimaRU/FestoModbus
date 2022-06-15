@@ -315,6 +315,8 @@ final public class FestoModbus {
         var scon: SCON
         var spos: SPOS
 
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.halt])
+        usleep(sleepTime)
         (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: [.hom, .halt])
 
         logger.trace("\(#function) wait ask")
