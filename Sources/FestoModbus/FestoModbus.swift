@@ -231,14 +231,37 @@ final public class FestoModbus {
         }
         if !scon.isDisjoint(with: [.fault, .warn]) {
             try clearError()
+            usleep(sleepTime)
+            (scon, spos, _, _, _) = try readDirect()
         }
         if scon.contains([.drvEn, .opsEn, .directMode]), spos.contains(.halt) {
             return
         }
+        usleep(sleepTime)
 
+        // enable drive
         let _ = try readWriteDirect(ccon: [], cpos: [])
-        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: .halt)
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .direct], cpos: .halt)
         for _ in 1...retryCount {
+            guard !cancel else { throw FestoError.cancelled }
+            guard scon.isDisjoint(with: [.fault, .warn]) else {
+                throw FestoError.faultOrWarn
+            }
+            if scon.contains([.drvEn, .directMode]), spos.contains(.halt) {
+                break
+            }
+            usleep(sleepTime)
+            (scon, spos, _, _, _) = try readDirect()
+        }
+        guard scon.contains([.drvEn, .directMode]), spos.contains(.halt) else {
+            throw FestoError.longOperation
+        }
+
+        logger.trace("enable operations")
+        usleep(sleepTime)
+        // enable operations
+        (scon, spos, _, _, _) = try readWriteDirect(ccon: [.drvEn, .opsEn, .direct], cpos: .halt)
+        for _ in 1...retryCount * 2 {
             guard !cancel else { throw FestoError.cancelled }
             guard scon.isDisjoint(with: [.fault, .warn]) else {
                 throw FestoError.faultOrWarn
@@ -280,6 +303,7 @@ final public class FestoModbus {
         for _ in 1...retryCount {
             guard !cancel else { throw FestoError.cancelled }
             if scon.isDisjoint(with: [.fault, .warn]) && !spos.contains(.ask) {
+                logger.trace("error cleared")
                 return
             }
             usleep(sleepTime)
