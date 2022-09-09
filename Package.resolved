@@ -30,7 +30,7 @@
       },
       {
         "package": "SwiftyModbus",
-        "repositoryURL": "https://git.dev-og.com/d.borovikov/SwiftyModbus.git",
+        "repositoryURL": "https://github.com/DimaRU/SwiftyModbus.git",
         "state": {
           "branch": null,
           "revision": "850c178ad2433ffa7d79446a05db89dde8095f00",
