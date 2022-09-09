@@ -33,7 +33,7 @@ final public class FestoModbus {
     ///   - address: Festo drive IP
     ///   - port: tcp port
     public init(address: String, port: Int32) {
-        modbus = SwiftyModbus(address: address, port: port)
+        modbus = SwiftyModbus(address: address, port: Int(port))
         modbus.responseTimeout = 1
         modbus.byteTimeout = 0.5
         #if FESTO_DEBUG

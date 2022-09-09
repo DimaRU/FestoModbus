@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/mxcl/PromiseKit.git",
         "state": {
           "branch": null,
-          "revision": "93c8d41ce96ed78f36c3948be396d76f3ca3de1b",
-          "version": "6.16.2"
+          "revision": "43772616c46a44a9977e41924ae01d0e55f2f9ca",
+          "version": "6.18.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
-          "version": "1.4.2"
+          "revision": "6fe203dc33195667ce1759bf0182975e4653ba1c",
+          "version": "1.4.4"
         }
       },
       {
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/DimaRU/SwiftyModbus.git",
         "state": {
           "branch": null,
-          "revision": "850c178ad2433ffa7d79446a05db89dde8095f00",
-          "version": "2.0.0"
+          "revision": "c576cfc84a27fc251f9f9629073cd991ac024434",
+          "version": "2.2.0"
         }
       }
     ]
